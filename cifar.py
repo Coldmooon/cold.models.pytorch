@@ -56,13 +56,15 @@ parser.add_argument('--dist-url', default='tcp://224.66.41.62:23456', type=str,
                     help='url used to set up distributed training')
 parser.add_argument('--dist-backend', default='gloo', type=str,
                     help='distributed backend')
+parser.add_argument('--gpu', default='0', type=str,
+                    help='GPU index')
 
 best_prec1 = 0
-
 
 def main():
     global args, best_prec1
     args = parser.parse_args()
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     args.distributed = args.world_size > 1
 
@@ -83,7 +85,8 @@ def main():
             model.features = torch.nn.DataParallel(model.features)
             model.cuda()
         else:
-            model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
+            # model = torch.nn.DataParallel(model, device_ids=[0,1]).cuda()
+            model.cuda()
     else:
         model.cuda()
         model = torch.nn.parallel.DistributedDataParallel(model)
@@ -191,6 +194,7 @@ def main():
             'optimizer' : optimizer.state_dict(),
         }, is_best)
 
+        print("\nBest Model: ", best_prec1)
 
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -210,7 +214,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = target.cuda(non_blocking=True)
 
         # compute output
-        output = model(input)
+        output = model(input.cuda())
         loss = criterion(output, target)
 
         # measure accuracy and record loss
@@ -254,7 +258,7 @@ def validate(val_loader, model, criterion):
             target = target.cuda(non_blocking=True)
 
             # compute output
-            output = model(input)
+            output = model(input.cuda())
             loss = criterion(output, target)
 
             # measure accuracy and record loss
@@ -309,9 +313,9 @@ class AverageMeter(object):
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     # lr = args.lr * (0.1 ** (epoch // 30))
-    if epoch >= 150 and epoch < 225:
+    if epoch >= 81 and epoch < 122:
         decay = 1
-    elif epoch >= 225:
+    elif epoch >= 122:
         decay = 2 
     else:
         decay = 0
