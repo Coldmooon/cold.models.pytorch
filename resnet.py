@@ -182,7 +182,7 @@ def resnet44(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [7, 7, 7, 7], **kwargs)
+    model = ResNet(BasicBlock, [7, 7, 7, 7], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return model
@@ -194,7 +194,7 @@ def resnet56(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [9, 9, 9, 9], **kwargs)
+    model = ResNet(BasicBlock, [9, 9, 9, 9], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
@@ -206,7 +206,7 @@ def resnet110(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [18, 18, 18, 18], **kwargs)
+    model = ResNet(BasicBlock, [18, 18, 18, 18], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
     return model
