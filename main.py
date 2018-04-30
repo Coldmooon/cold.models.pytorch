@@ -345,12 +345,7 @@ def adjust_learning_rate(optimizer, epoch):
     if (args.dataset == 'imagenet'):
         decay = epoch // 30
     elif (args.dataset == 'cifar10' or args.dataset == 'cifar10'):
-        if epoch >= 81 and epoch < 122:
-            decay = 1
-        elif epoch >= 122:
-            decay = 2
-        else:
-            decay = 0
+        decay = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
 
     lr =  args.lr * pow(0.1, decay)
 
