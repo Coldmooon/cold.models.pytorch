@@ -66,7 +66,12 @@ best_prec1 = 0
 def main():
     global args, best_prec1
     args = parser.parse_args()
+
+    # Use specific GPU
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    devices = [int(s) for s in args.gpu.split(',') if s.isdigit()]
+    nGPU = len(devices)
+    devices = list(range(nGPU))
 
     args.distributed = args.world_size > 1
 
@@ -87,8 +92,10 @@ def main():
             model.features = torch.nn.DataParallel(model.features)
             model.cuda()
         else:
-            # model = torch.nn.DataParallel(model, device_ids=[0,1]).cuda()
-            model.cuda()
+            if (nGPU == 1):
+                model.cuda()
+            else:
+                model = torch.nn.DataParallel(model, device_ids=devices).cuda()
     else:
         model.cuda()
         model = torch.nn.parallel.DistributedDataParallel(model)
@@ -219,7 +226,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = target.cuda(non_blocking=True)
 
         # compute output
-        output = model(input.cuda())
+        # if not (input.is_cuda):
+        #     input = input.cuda()
+        if (len(args.gpu) == 1):
+            output = model(input.cuda())
+        else:
+            output = model(input)
+
         loss = criterion(output, target)
 
         # measure accuracy and record loss
