@@ -97,7 +97,7 @@ class ResNetCIFAR(nn.Module):
 
     def __init__(self, block, layers, num_classes=10):
         self.inplanes = 16
-        super(ResNet, self).__init__()
+        super(ResNetCIFAR, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU(inplace=True)
@@ -151,7 +151,7 @@ class ResNetImageNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000):
         self.inplanes = 64
-        super(ResNet, self).__init__()
+        super(ResNetImageNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
