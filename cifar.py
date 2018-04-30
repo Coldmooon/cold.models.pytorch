@@ -60,6 +60,8 @@ parser.add_argument('--gpu', default='0', type=str,
                     help='GPU index')
 parser.add_argument('--se-reduce', default='16', type=int,
                     help='SE-Net reduce param')
+parser.add_argument('--dataset', default='cifar10', type=str,
+                    help='[imagenet|cifar10|cifar100]')
 
 best_prec1 = 0
 
@@ -127,55 +129,62 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
-    # traindir = os.path.join(args.data, 'train')
-    # valdir = os.path.join(args.data, 'val')
-    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-    #                                  std=[0.229, 0.224, 0.225])
+    if (args.dataset == 'imagenet'):
+        traindir = os.path.join(args.data, 'train')
+        valdir = os.path.join(args.data, 'val')
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])
 
-    # train_dataset = datasets.ImageFolder(
-    #     traindir,
-    #     transforms.Compose([
-    #         transforms.RandomResizedCrop(224),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]))
+        train_dataset = datasets.ImageFolder(
+            traindir,
+            transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]))
 
-    to_normalized_tensor = [transforms.ToTensor(),
-                            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
-    data_augmentation = [transforms.RandomCrop(32, padding=4),
-                         transforms.RandomHorizontalFlip()]
+        if args.distributed:
+            train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+        else:
+            train_sampler = None
 
-    transform = transforms.Compose(data_augmentation + to_normalized_tensor)
-    
-    trainset = datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=2)
-    
-    testset = datasets.CIFAR10(root='./data', train=False,
-                                           download=True, transform=transform)
-    val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-                                         shuffle=False, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+            num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
-    # if args.distributed:
-    #     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    # else:
-    #     train_sampler = None
+        val_loader = torch.utils.data.DataLoader(
+            datasets.ImageFolder(valdir, transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
+            ])),
+            batch_size=args.batch_size, shuffle=False,
+            num_workers=args.workers, pin_memory=True)
 
-    # train_loader = torch.utils.data.DataLoader(
-    #     train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-    #     num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+    elif (args.dataset == 'cifar10'):
+        to_normalized_tensor = [transforms.ToTensor(),
+                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+        data_augmentation = [transforms.RandomCrop(32, padding=4),
+                             transforms.RandomHorizontalFlip()]
 
-    # val_loader = torch.utils.data.DataLoader(
-    #     datasets.ImageFolder(valdir, transforms.Compose([
-    #         transforms.Resize(256),
-    #         transforms.CenterCrop(224),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ])),
-    #     batch_size=args.batch_size, shuffle=False,
-    #     num_workers=args.workers, pin_memory=True)
+        transform = transforms.Compose(data_augmentation + to_normalized_tensor)
+
+        trainset = datasets.CIFAR10(root='./data', train=True,
+                                                download=True, transform=transform)
+        train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                                  shuffle=True, num_workers=2)
+
+        testset = datasets.CIFAR10(root='./data', train=False,
+                                               download=True, transform=transform)
+        val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                             shuffle=False, num_workers=2)
+    else:
+        print('No dataset named ', args.dataset)
+        exit(0)
+
+
 
     if args.evaluate:
         validate(val_loader, model, criterion)
@@ -276,7 +285,10 @@ def validate(val_loader, model, criterion):
             target = target.cuda(non_blocking=True)
 
             # compute output
-            output = model(input.cuda())
+            if (len(args.gpu) == 1):
+                output = model(input.cuda())
+            else:
+                output = model(input)
             loss = criterion(output, target)
 
             # measure accuracy and record loss
@@ -330,13 +342,15 @@ class AverageMeter(object):
 
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    # lr = args.lr * (0.1 ** (epoch // 30))
-    if epoch >= 81 and epoch < 122:
-        decay = 1
-    elif epoch >= 122:
-        decay = 2 
-    else:
-        decay = 0
+    if (args.dataset == 'imagenet'):
+        decay = epoch // 30
+    elif (args.dataset == 'cifar10' or args.dataset == 'cifar10'):
+        if epoch >= 81 and epoch < 122:
+            decay = 1
+        elif epoch >= 122:
+            decay = 2
+        else:
+            decay = 0
 
     lr =  args.lr * pow(0.1, decay)
 
