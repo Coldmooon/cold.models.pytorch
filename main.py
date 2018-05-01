@@ -108,9 +108,24 @@ def main():
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
 
-    optimizer = torch.optim.SGD(model.parameters(), args.lr,
+    # optimizer = torch.optim.SGD(model.parameters(),
+    #                             args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay)
+
+    lr_policy = list()
+    params_collect = dict(model.named_parameters())
+    for k, v in params_collect.items():
+        if 'st32x32' in k:
+            lr_policy.append({'params': v, 'lr': 0.01, 'weight_decay': args.weight_decay})
+        else:
+            lr_policy.append({'params': v})
+
+    optimizer = torch.optim.SGD(lr_policy,
+                                args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
+
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -199,6 +214,7 @@ def main():
 
         print("Learning Rate: ", optimizer.param_groups[0]['lr'])
         # train for one epoch
+
         train(train_loader, model, criterion, optimizer, epoch)
 
         # evaluate on validation set
@@ -342,15 +358,23 @@ class AverageMeter(object):
 
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+    decays = 0
+    decay = 0
     if (args.dataset == 'imagenet'):
-        decay = epoch // 30
+        decays = epoch // 30
+        decay = decays > 0 and 1 or 0
     elif (args.dataset == 'cifar10' or args.dataset == 'cifar10'):
-        decay = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
+        decays = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
+        decay = decays > 0 and 1 or 0
+    else:
+        print("No dataset named ", args.dataset)
+        exit(-1)
 
-    lr =  args.lr * pow(0.1, decay)
+    lr =  args.lr * pow(0.1, decays)
 
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+        # param_group['lr'] = lr # global learning rate
+        param_group['lr'] = param_group['lr'] * pow(0.1, decay) # learning rate for specific layer
 
 
 def accuracy(output, target, topk=(1,)):
