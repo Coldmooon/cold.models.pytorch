@@ -362,10 +362,10 @@ def adjust_learning_rate(optimizer, epoch):
     decay = 0
     if (args.dataset == 'imagenet'):
         decays = epoch // 30
-        decay = decays > 0 and 1 or 0
+        decay = epoch % 30 == 0 and 1 or 0
     elif (args.dataset == 'cifar10' or args.dataset == 'cifar10'):
         decays = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
-        decay = decays > 0 and 1 or 0
+        decay = epoch == 122 and 1 or epoch == 81 and 1 or 0
     else:
         print("No dataset named ", args.dataset)
         exit(-1)
