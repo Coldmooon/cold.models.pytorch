@@ -154,6 +154,7 @@ def main():
             traindir,
             transforms.Compose([
                 transforms.RandomResizedCrop(224),
+                transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 normalize,
