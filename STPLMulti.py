@@ -231,12 +231,12 @@ class STPLMulti(nn.Module):
         return length_logits, digits_logits
 
 
-def stpl11(pretrained=False, **kwargs):
+def stpl11(r=16):
     """Constructs a ResNet-101 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = STPLMulti()
+    model = STPLMulti(r=r)
     return model
 
