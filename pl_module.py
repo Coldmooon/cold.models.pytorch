@@ -11,7 +11,7 @@ class PLLayer(nn.Module):
                 # nn.ReLU(inplace=True),
                 nn.Linear(channel // reduction, channel),
                 # nn.Sigmoid()
-                torch.nn.Softmax(1)
+                nn.Softmax(1)
         )
 
     def forward(self, x):
