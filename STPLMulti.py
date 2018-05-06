@@ -4,9 +4,9 @@ import torch.nn.functional as F
 import math
 import torch.utils.model_zoo as model_zoo
 import torch
-from se_module import SELayer
+from pl_module import PLLayer
 
-__all__ = ['STPLMulti', 'stm11', 'baseline']
+__all__ = ['STPLMulti', 'stpl11']
 
 
 class STPLMulti(nn.Module):
@@ -14,14 +14,14 @@ class STPLMulti(nn.Module):
         super(STPLMulti, self).__init__()
 
         self.relu = nn.ReLU(inplace=True)
-        self.se1 = SELayer(48, r)
-        self.se2 = SELayer(64, r)
-        self.se3 = SELayer(128, r)
-        self.se4 = SELayer(160, r)
-        self.se5 = SELayer(192, r)
-        self.se6 = SELayer(192, r)
-        self.se7 = SELayer(192, r)
-        self.se8 = SELayer(192, r)
+        self.pl1 = PLLayer(48, r)
+        self.pl2 = PLLayer(64, r)
+        self.pl3 = PLLayer(128, r)
+        self.pl4 = PLLayer(160, r)
+        self.pl5 = PLLayer(192, r)
+        self.pl6 = PLLayer(192, r)
+        self.pl7 = PLLayer(192, r)
+        self.pl8 = PLLayer(192, r)
 
         self.hidden1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=48, kernel_size=5, padding=2),
@@ -48,7 +48,7 @@ class STPLMulti(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=160, kernel_size=5, padding=2),
             nn.BatchNorm2d(num_features=160),
             nn.ReLU(),
-            self.se4,
+            self.pl4,
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             nn.Dropout(0.5)
         )
@@ -56,7 +56,7 @@ class STPLMulti(nn.Module):
             nn.Conv2d(in_channels=160, out_channels=192, kernel_size=5, padding=2),
             nn.BatchNorm2d(num_features=192),
             nn.ReLU(),
-            self.se5,
+            self.pl5,
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             nn.Dropout(0.5)
         )
@@ -64,7 +64,7 @@ class STPLMulti(nn.Module):
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2),
             nn.BatchNorm2d(num_features=192),
             nn.ReLU(),
-            self.se6,
+            self.pl6,
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             nn.Dropout(0.5)
         )
@@ -72,7 +72,7 @@ class STPLMulti(nn.Module):
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2),
             nn.BatchNorm2d(num_features=192),
             nn.ReLU(),
-            self.se7,
+            self.pl7,
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             nn.Dropout(0.5)
         )
@@ -80,7 +80,7 @@ class STPLMulti(nn.Module):
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2),
             nn.BatchNorm2d(num_features=192),
             nn.ReLU(),
-            self.se8,
+            self.pl8,
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             nn.Dropout(0.5)
         )
@@ -211,13 +211,13 @@ class STPLMulti(nn.Module):
         x = self.st1(x)
         x = self.hidden1(x)
         x = self.st2(x)
-        x = self.se1(x)
+        x = self.pl1(x)
         x = self.hidden2(x)
         x = self.st3(x)
-        x = self.se2(x)
+        x = self.pl2(x)
         x = self.hidden3(x)
         x = self.st4(x)
-        x = self.se3(x)
+        x = self.pl3(x)
         x = self.hidden4(x)
         x = self._features(x)
         x = x.view(x.size(0), -1)
