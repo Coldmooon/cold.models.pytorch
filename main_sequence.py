@@ -102,6 +102,8 @@ parser.add_argument('--se-reduce', default='16', type=int,
                     help='SE-Net reduce param')
 parser.add_argument('--dataset', default='cifar10', type=str,
                     help='[imagenet|cifar10|cifar100]')
+parser.add_argument('--save', default='./', type=str,
+                    help='save path')
 
 best_prec1 = 0
 
@@ -297,7 +299,7 @@ def main():
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer' : optimizer.state_dict(),
-        }, is_best)
+        }, is_best, args.save + '/checkpoint.pth.tar')
 
         print("\nBest Model: ", best_prec1)
 
@@ -410,7 +412,7 @@ def validate(val_loader, model, criterion):
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, os.path.dirname(filename) + 'model_best.pth.tar')
 
 
 class AverageMeter(object):
