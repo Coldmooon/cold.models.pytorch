@@ -63,8 +63,9 @@ class PLminus(nn.Module):
         y = x.view(b, c)
         # compute
         # y = self.avg_pool(x).view(b, c)
+        # todo: add bias
         y = self.fc(y).view(b, c, 1, 1)
-        return self.relu(self.bn(xout * y * 2))
+        return self.relu(self.bn(xout) * y * 2)
 
 class PLasConv(nn.Module):
     def __init__(self, channel, reduction=16):
@@ -77,7 +78,6 @@ class PLasConv(nn.Module):
         self.conv1x1.bias.data.zero_()
 
     def forward(self, xin, xout=None):
-        # b, c, _, _ = xin.size()
 
         if (xout is not None):
             x = xin + xout
