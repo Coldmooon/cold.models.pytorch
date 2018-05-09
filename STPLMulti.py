@@ -648,12 +648,6 @@ class STPLFCNv4(nn.Module):
         super(STPLFCNv4, self).__init__()
 
         self.relu = nn.ReLU(inplace=True)
-        self.pl1 = nn.Conv2d(in_channels=48, out_channels=48, kernel_size=1, groups=48, bias=False),
-        self.bn1 = nn.BatchNorm2d(num_features=48),
-        self.pl2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=1, groups=64, bias=False),
-        self.bn2 = nn.BatchNorm2d(num_features=64),
-        self.pl3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=1, groups=128, bias=False),
-        self.bn3 = nn.BatchNorm2d(num_features=128),
 
         self.hidden1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=48, kernel_size=5, padding=2, bias=False),
@@ -662,6 +656,11 @@ class STPLFCNv4(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             # nn.Dropout(0.2)
         )
+        self.pl1 = nn.Sequential(
+            nn.Conv2d(in_channels=48, out_channels=48, kernel_size=1, groups=48, bias=False),
+            nn.BatchNorm2d(num_features=48),
+            nn.ReLU()
+        )
         self.hidden2 = nn.Sequential(
             nn.Conv2d(in_channels=48, out_channels=64, kernel_size=5, padding=2, bias=False),
             nn.BatchNorm2d(num_features=64),
@@ -669,12 +668,22 @@ class STPLFCNv4(nn.Module):
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             nn.Dropout(0.5)
         )
+        self.pl2 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=1, groups=64, bias=False),
+            nn.BatchNorm2d(num_features=64),
+            nn.ReLU()
+        )
         self.hidden3 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, padding=2, bias=False),
             nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             nn.Dropout(0.5)
+        )
+        self.pl3 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=1, groups=128, bias=False),
+            nn.BatchNorm2d(num_features=128),
+            nn.ReLU()
         )
         self.hidden4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=160, kernel_size=5, padding=2, bias=False),
@@ -823,19 +832,13 @@ class STPLFCNv4(nn.Module):
         x = self.hidden1(x)
         x = self.st2(x)
         x = self.pl1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
         x = self.hidden2(x)
         x = self.st3(x)
         x = self.pl2(x)
-        x = self.pl2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
         x = self.hidden3(x)
         x = self.st4(x)
         x = self.pl3(x)
-        x = self.bn3(x)
-        x = self.relu(x)
+
         x = self.hidden4(x)
         x = self._features(x)
         x = self._classifier(x)
