@@ -65,3 +65,27 @@ class PLminus(nn.Module):
         # y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
         return self.relu(self.bn(xout * y * 2))
+
+class PLasConv(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(PLasConv, self).__init__()
+        self.conv1x1 = nn.Conv2d(channel, channel, kernel_size=1, groups=channel)
+        self.bn = nn.BatchNorm2d(channel, affine=False)
+        self.relu = nn.ReLU()
+
+        self.conv1x1.weight.data.fill_(1)
+        self.conv1x1.bias.data.zero_()
+
+    def forward(self, xin, xout=None):
+        # b, c, _, _ = xin.size()
+
+        if (xout is not None):
+            x = xin + xout
+        else:
+            x = xin
+
+        x = self.bn(x)
+        x = self.conv1x1(x)
+        x = self.relu(x)
+
+        return x
