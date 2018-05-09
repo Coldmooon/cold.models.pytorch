@@ -31,7 +31,7 @@ class PLminus(nn.Module):
         super(PLminus, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.bn = nn.BatchNorm2d(channel, affine=False)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
         self.pdist = nn.PairwiseDistance(p=2,keepdim=True)
         self.cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         self.fc = nn.Sequential(
@@ -55,7 +55,11 @@ class PLminus(nn.Module):
         # x = self.relu(self.bn(xout)) - self.relu(self.bn(xin))
 
         # L2-avg
-        x = (self.avg_pool(self.relu(xin)) - self.avg_pool(self.relu(xout))) ** 2
+        x1 = self.relu(xin)
+        x1 = self.avg_pool(x1)
+        x2 = self.relu(xout)
+        x2 = self.avg_pool(x2)
+        x = (x1 - x2)**2
         y = x.view(b, c)
         # compute
         # y = self.avg_pool(x).view(b, c)
