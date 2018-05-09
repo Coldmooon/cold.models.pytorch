@@ -1058,18 +1058,18 @@ class STPLminus(nn.Module):
 
         # rec1 = self.maxpool(rec1)
 
-        rec1 = self.hidden2(rec1)
-        xout2 = self.st3(rec1)
-        rec2 = self.pl2(rec1, xout2)
+        xin2 = self.hidden2(rec1)
+        xout2 = self.st3(xin2)
+        rec2 = self.pl2(xin2, xout2)
 
-        rec2 = self.hidden3(rec2)
-        out3 = self.st4(rec2)
-        rec3 = self.pl3(rec2, out3)
+        xin3 = self.hidden3(rec2)
+        xout3 = self.st4(xin3)
+        rec3 = self.pl3(xin3, xout3)
 
         # rec3 = self.maxpool(rec3)
 
-        rec3 = self.hidden4(rec3)
-        x = self._features(rec3)
+        xin4 = self.hidden4(rec3)
+        x = self._features(xin4)
         x = self._classifier(x)
         x = x.view(x.size(0), -1)
 
