@@ -1090,21 +1090,22 @@ class PLinConv(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.bn= nn.BatchNorm2d(num_features=48)
 
         self.pl1 = PLasConv(48, r)
         self.pl2 = PLasConv(64, r)
         self.pl3 = PLasConv(128, r)
-        self.se4 = PLasConv(160, r)
-        self.se5 = PLasConv(192, r)
-        self.se6 = PLasConv(192, r)
-        self.se7 = PLasConv(192, r)
-        self.se8 = PLasConv(192, r)
+        self.pl4 = PLasConv(160, r)
+        self.pl5 = PLasConv(192, r)
+        self.pl6 = PLasConv(192, r)
+        self.pl7 = PLasConv(192, r)
+        self.pl8 = PLasConv(192, r)
 
         self.hidden1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=48, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=48),
             # nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             # nn.Dropout(0.2)
         )
         self.hidden2 = nn.Sequential(
@@ -1118,46 +1119,46 @@ class PLinConv(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=128),
             # nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             # nn.Dropout(0.5)
         )
         self.hidden4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=160, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=160),
-            self.se4,
-            nn.ReLU()
+            self.pl4,
+            # nn.ReLU()
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             # nn.Dropout(0.5)
         )
         hidden5 = nn.Sequential(
             nn.Conv2d(in_channels=160, out_channels=192, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=192),
-            self.se5,
-            nn.ReLU(),
+            self.pl5,
+            # nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             # nn.Dropout(0.5)
         )
         hidden6 = nn.Sequential(
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=192),
-            self.se6,
-            nn.ReLU()
+            self.pl6,
+            # nn.ReLU()
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             # nn.Dropout(0.5)
         )
         hidden7 = nn.Sequential(
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=192),
-            self.se7,
-            nn.ReLU(),
+            self.pl7,
+            # nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             # nn.Dropout(0.5)
         )
         hidden8 = nn.Sequential(
             nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=False),
             # nn.BatchNorm2d(num_features=192),
-            self.se8,
-            nn.ReLU()
+            self.pl8,
+            # nn.ReLU()
             # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
             # nn.Dropout(0.5)
         )
@@ -1195,7 +1196,7 @@ class PLinConv(nn.Module):
         # self.st1fc2 = nn.Linear(32, 32)
         # self.st1fc3 = nn.Linear(32, 6)
 
-        self.st2fc1 = nn.Linear(27 * 27 * 48, 32)
+        self.st2fc1 = nn.Linear(54 * 54 * 48, 32)
         self.st2fc2 = nn.Linear(32, 32)
         self.st2fc3 = nn.Linear(32, 6)
 
@@ -1203,7 +1204,7 @@ class PLinConv(nn.Module):
         self.st3fc2 = nn.Linear(32, 32)
         self.st3fc3 = nn.Linear(32, 6)
 
-        self.st4fc1 = nn.Linear(13 * 13 * 128, 32)
+        self.st4fc1 = nn.Linear(27 * 27 * 128, 32)
         self.st4fc2 = nn.Linear(32, 32)
         self.st4fc3 = nn.Linear(32, 6)
 
@@ -1274,7 +1275,7 @@ class PLinConv(nn.Module):
         xout1 = self.st2(xin1)
         rec1 = self.pl1(xin1, xout1)
 
-        # rec1 = self.maxpool(rec1)
+        rec1 = self.maxpool(rec1)
 
         xin2 = self.hidden2(rec1)
         xout2 = self.st3(xin2)
@@ -1284,7 +1285,7 @@ class PLinConv(nn.Module):
         xout3 = self.st4(xin3)
         rec3 = self.pl3(xin3, xout3)
 
-        # rec3 = self.maxpool(rec3)
+        rec3 = self.maxpool(rec3)
 
         xin4 = self.hidden4(rec3)
         x = self._features(xin4)
