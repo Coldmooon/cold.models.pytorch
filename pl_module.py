@@ -87,7 +87,7 @@ class PLasConv(nn.Module):
         # method (1):
         # x = self.bn(x)
         # method (2):
-        x = (x - x.mean(0,True).mean(2,True).mean(3, True)) / (torch.std(x) + 1e-5)
+        x = (x - x.mean(0, True)) / (x.std(0, True) + 1e-5)
         # method (3):
         # norm = x.pow(2).sum(dim=1, keepdim=True).sqrt()+ 1e-6
         # x = torch.div(x,norm)
