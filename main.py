@@ -14,7 +14,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-import senet as models
+import aresnet as models
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -62,6 +62,8 @@ parser.add_argument('--se-reduce', default='16', type=int,
                     help='SE-Net reduce param')
 parser.add_argument('--dataset', default='cifar10', type=str,
                     help='[imagenet|cifar10|cifar100]')
+parser.add_argument('--save', default='./', type=str,
+                    help='save path')
 
 best_prec1 = 0
 
@@ -181,7 +183,8 @@ def main():
 
     elif (args.dataset == 'cifar10'):
         to_normalized_tensor = [transforms.ToTensor(),
-                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+                                # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470,  0.2435,  0.2616))]
         data_augmentation = [transforms.RandomCrop(32, padding=4),
                              transforms.RandomHorizontalFlip()]
 
@@ -196,6 +199,31 @@ def main():
                                                download=True, transform=transform)
         val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=2)
+    elif (args.dataset == 'svhn'):
+        path_to_train_lmdb_dir = os.path.join(args.data, 'train.lmdb')
+        path_to_val_lmdb_dir = os.path.join(args.data, 'val.lmdb')
+        train_loader = torch.utils.data.DataLoader(SVHN(path_to_train_lmdb_dir),
+                                                   batch_size=args.batch_size, shuffle=True,
+                                                   num_workers=2, pin_memory=True)
+        val_loader = torch.utils.data.DataLoader(SVHN(path_to_val_lmdb_dir), batch_size=128, shuffle=False)
+
+        # to_normalized_tensor = [transforms.ToTensor(),
+        #                         # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+        #                         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470,  0.2435,  0.2616))]
+        # data_augmentation = [transforms.RandomCrop(28, padding=0),
+        #                      transforms.RandomHorizontalFlip()]
+        #
+        # transform = transforms.Compose(data_augmentation + to_normalized_tensor)
+        #
+        # trainset = datasets.CIFAR10(root='./data', train=True,
+        #                                         download=True, transform=transform)
+        # train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+        #                                           shuffle=True, num_workers=2)
+        #
+        # testset = datasets.CIFAR10(root='./data', train=False,
+        #                                        download=True, transform=transform)
+        # val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+        #                                      shuffle=False, num_workers=2)
     else:
         print('No dataset named ', args.dataset)
         exit(0)
@@ -204,6 +232,7 @@ def main():
 
     if args.evaluate:
         validate(val_loader, model, criterion)
+        print(acc)
         return
 
     print("Number of parameters: ", sum(p.numel() for p in model.parameters() if p.requires_grad))
@@ -230,7 +259,7 @@ def main():
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer' : optimizer.state_dict(),
-        }, is_best)
+        }, is_best, args.save + '/checkpoint.pth.tar')
 
         print("\nBest Model: ", best_prec1)
 
@@ -336,7 +365,7 @@ def validate(val_loader, model, criterion):
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, os.path.dirname(filename) + '/model_best.pth.tar')
 
 
 class AverageMeter(object):
@@ -364,9 +393,11 @@ def adjust_learning_rate(optimizer, epoch):
     if (args.dataset == 'imagenet'):
         decays = epoch // 30
         decay = epoch % 30 == 0 and 1 or 0
-    elif (args.dataset == 'cifar10' or args.dataset == 'cifar10'):
+    elif (args.dataset == 'cifar10' or args.dataset == 'cifar100'):
         decays = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
         decay = epoch == 122 and 1 or epoch == 81 and 1 or 0
+    elif (args.dataset == 'svhn'):
+        decay = epoch % 48 == 0 and 1 or 0
     else:
         print("No dataset named ", args.dataset)
         exit(-1)
