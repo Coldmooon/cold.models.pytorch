@@ -3,10 +3,10 @@ import math
 import torch.utils.model_zoo as model_zoo
 from se_module import SELayer
 from alu import ALU
+# from scale import ScaleLayer
 
-
-__all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet544', 'resnet56',
-           'resnet110']
+__all__ = ['ResNet', 'aresnet20', 'aresnet32', 'aresnet544', 'aresnet56',
+           'aresnet110']
 
 
 model_urls = {
@@ -32,7 +32,7 @@ class BasicBlock(nn.Module):
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.alu = ALU(planes, r)
-        # self.relu = nn.ReLU(inplace=True)
+        # self.sc = ScaleLayer(planes)
         self.conv2 = conv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
 
@@ -44,12 +44,11 @@ class BasicBlock(nn.Module):
 
         out = self.conv1(x)
         out = self.bn1(out)
-        # out = self.relu(out)
         out = self.alu(out)
+        # out = self.sc(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
-        # out = self.se(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
@@ -109,12 +108,9 @@ class ResNetCIFAR(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU(inplace=True)
-        # self.alu = ALU(16, r)
-        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 16, layers[0], r=r)
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2, r=r)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2, r=r)
-        # self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(8, stride=1)
         self.fc = nn.Linear(64 * block.expansion, num_classes)
 
@@ -123,8 +119,9 @@ class ResNetCIFAR(nn.Module):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
             elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                if m.affine:
+                    m.weight.data.fill_(1)
+                    m.bias.data.zero_()
 
     def _make_layer(self, block, planes, blocks, stride=1, r=16):
         downsample = None
