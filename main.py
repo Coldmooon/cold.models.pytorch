@@ -15,6 +15,8 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 import aresnet as models
+import PIL
+from rotmnist import RotMNIST
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -199,31 +201,23 @@ def main():
                                                download=True, transform=transform)
         val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=2)
-    elif (args.dataset == 'svhn'):
-        path_to_train_lmdb_dir = os.path.join(args.data, 'train.lmdb')
-        path_to_val_lmdb_dir = os.path.join(args.data, 'val.lmdb')
-        train_loader = torch.utils.data.DataLoader(SVHN(path_to_train_lmdb_dir),
-                                                   batch_size=args.batch_size, shuffle=True,
-                                                   num_workers=2, pin_memory=True)
-        val_loader = torch.utils.data.DataLoader(SVHN(path_to_val_lmdb_dir), batch_size=128, shuffle=False)
+    elif (args.dataset == 'mnist-rot-12k'):
+        to_normalized_tensor = [transforms.ToTensor(),
+                                transforms.Normalize((0.13), (0.2970))]
+        data_augmentation = [transforms.RandomCrop(32, padding=2),
+                             transforms.RandomRotation(180, PIL.Image.BILINEAR)]
 
-        # to_normalized_tensor = [transforms.ToTensor(),
-        #                         # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
-        #                         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470,  0.2435,  0.2616))]
-        # data_augmentation = [transforms.RandomCrop(28, padding=0),
-        #                      transforms.RandomHorizontalFlip()]
-        #
-        # transform = transforms.Compose(data_augmentation + to_normalized_tensor)
-        #
-        # trainset = datasets.CIFAR10(root='./data', train=True,
-        #                                         download=True, transform=transform)
-        # train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-        #                                           shuffle=True, num_workers=2)
-        #
-        # testset = datasets.CIFAR10(root='./data', train=False,
-        #                                        download=True, transform=transform)
-        # val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-        #                                      shuffle=False, num_workers=2)
+        transform = transforms.Compose(data_augmentation + to_normalized_tensor)
+
+        trainset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch', train=True,
+                                    download=False, transform=transform)
+        train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                                   shuffle=True, num_workers=2)
+
+        testset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch', train=False,
+                                   download=False, transform=transform)
+        val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                                 shuffle=False, num_workers=2)
     else:
         print('No dataset named ', args.dataset)
         exit(0)
@@ -398,6 +392,8 @@ def adjust_learning_rate(optimizer, epoch):
         decay = epoch == 122 and 1 or epoch == 81 and 1 or 0
     elif (args.dataset == 'svhn'):
         decay = epoch % 48 == 0 and 1 or 0
+    elif (args.dataset == 'mnist-rot-12k'):
+        decay = epoch == 225 and 1 or epoch == 150 and 1 or 0
     else:
         print("No dataset named ", args.dataset)
         exit(-1)
