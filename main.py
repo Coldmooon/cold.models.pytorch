@@ -14,7 +14,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-import aresnet as models
+import TransErrorVeri as models
 import PIL
 from rotmnist import RotMNIST
 
@@ -203,18 +203,18 @@ def main():
                                              shuffle=False, num_workers=2)
     elif (args.dataset == 'mnist-rot-12k'):
         to_normalized_tensor = [transforms.ToTensor(),
-                                transforms.Normalize((0.13), (0.2970))]
-        data_augmentation = [transforms.RandomCrop(32, padding=2),
-                             transforms.RandomRotation(180, PIL.Image.BILINEAR)]
+                                transforms.Normalize((0.13,), (0.2970,))]
+        data_augmentation = [transforms.RandomCrop(28, padding=0)]
+                             # transforms.RandomRotation(180, PIL.Image.BILINEAR)]
 
         transform = transforms.Compose(data_augmentation + to_normalized_tensor)
 
-        trainset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch', train=True,
+        trainset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch/', train=True,
                                     download=False, transform=transform)
         train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                                    shuffle=True, num_workers=2)
 
-        testset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch', train=False,
+        testset = RotMNIST(root='/home/coldmoon/Datasets/MNIST/mnist-rot-12k/pytorch/', train=False,
                                    download=False, transform=transform)
         val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                                  shuffle=False, num_workers=2)
