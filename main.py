@@ -14,22 +14,21 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-import TransErrorVeri as models
+# import resnet as models
 import PIL
 from rotmnist import RotMNIST
+import importlib
 
-model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
+# model_names = sorted(name for name in models.__dict__
+#     if name.islower() and not name.startswith("__")
+#     and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet20',
-                    choices=model_names,
-                    help='model architecture: ' +
-                        ' | '.join(model_names) +
-                        ' (default: resnet18)')
+                    # choices=model_names,
+                    )
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=90, type=int, metavar='N',
@@ -66,12 +65,19 @@ parser.add_argument('--dataset', default='cifar10', type=str,
                     help='[imagenet|cifar10|cifar100]')
 parser.add_argument('--save', default='./', type=str,
                     help='save path')
+parser.add_argument('--depth', default='20', type=str,
+                    help='the depth of network')
 
 best_prec1 = 0
 
 def main():
     global args, best_prec1
     args = parser.parse_args()
+
+
+    # import the module
+    models = importlib.import_module(args.arch)
+    globals().update(models.__dict__)
 
     # Use specific GPU
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -85,6 +91,7 @@ def main():
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                                 world_size=args.world_size)
 
+    args.arch = args.arch + args.depth
     # create model
     if args.pretrained:
         print("=> using pre-trained model '{}'".format(args.arch))
