@@ -5,8 +5,8 @@ from se_module import SELayer
 from alu import ALU
 # from scale import ScaleLayer
 
-__all__ = ['ResNet', 'aresnet20', 'aresnet32', 'aresnet544', 'aresnet56',
-           'aresnet110']
+__all__ = ['ResNetCIFAR', 'ResNetImageNet', 'aresnet20', 'aresnet32', 'aresnet44', 'aresnet56','aresnet110',
+           'aresnet34', 'aresnet50', 'aresnet101', 'aresnet152']
 
 
 model_urls = {
@@ -66,13 +66,15 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
+        self.alu1 = ALU(planes, r)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
+        self.alu2 = ALU(planes, r)
+
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
-        self.relu = nn.ReLU(inplace=True)
-        self.se = SELayer(planes * 4, r)
+        self.alu3 = ALU(planes * 4, r)
         self.downsample = downsample
         self.stride = stride
 
@@ -81,21 +83,21 @@ class Bottleneck(nn.Module):
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = self.relu(out)
+        out = self.alu1(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
-        out = self.relu(out)
+        out = self.alu2(out)
 
         out = self.conv3(out)
         out = self.bn3(out)
-        out = self.se(out)
+        # out = self.se(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
 
         out += residual
-        out = self.relu(out)
+        out = self.alu3(out)
 
         return out
 
@@ -108,9 +110,9 @@ class ResNetCIFAR(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1 = self._make_layer(block, 16, layers[0], r=r)
-        self.layer2 = self._make_layer(block, 32, layers[1], stride=2, r=r)
-        self.layer3 = self._make_layer(block, 64, layers[2], stride=2, r=r)
+        self.layer1 = self._make_layer(block, 16, layers[0], r=4)
+        self.layer2 = self._make_layer(block, 32, layers[1], stride=2, r=8)
+        self.layer3 = self._make_layer(block, 64, layers[2], stride=2, r=16)
         self.avgpool = nn.AvgPool2d(8, stride=1)
         self.fc = nn.Linear(64 * block.expansion, num_classes)
 
