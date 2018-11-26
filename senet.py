@@ -4,7 +4,7 @@ import torch.utils.model_zoo as model_zoo
 from se_module import SELayer
 
 
-__all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet544', 'resnet56',
+__all__ = ['ResNet', 'resnet20', 'resnet32', 'senet50', 'resnet56',
            'resnet110']
 
 
@@ -179,6 +179,9 @@ class ResNetImageNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm1d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def _make_layer(self, block, planes, blocks, stride=1, r=16):
         downsample = None
@@ -300,7 +303,7 @@ def resnet34(pretrained=False, **kwargs):
     return model
 
 
-def resnet50(pretrained=False, **kwargs):
+def senet50(pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
 
     Args:

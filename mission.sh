@@ -11,10 +11,6 @@
 # ./train.sh stplinconv 0 16 _fcn_BNorm_avgbeforest_nost1_nobn_nodropout_gauss_ _GTX1080
 
 
-
-
-
-
 # ./cifar.sh aresnet20 0 16 _ALU_r4_r8_r16_BN_msra_bs128_ _cifar10_GTX1080
 # ./cifar.sh aresnet32 0 16 _ALU_r4_r8_r16_BN_msra_bs128_ _cifar10_GTX1080
 # ./cifar.sh aresnet44 0 16 _ALU_r4_r8_r16_BN_msra_bs128_ _cifar10_GTX1080
@@ -22,4 +18,6 @@
 # ./cifar.sh aresnet110 0 16 _ALU_r4_r8_r16_BN_msra_bs128_ _cifar10_GTX1080
 
 
-./mnist.sh transerror 0 16 _STN7_nobn_gauss_lr0.01_bs64_ _conv1aug360_mnist-rot-12k_GTX1080
+# ./mnist.sh transerror 0 16 _STN7_nobn_gauss_lr0.01_bs64_ _conv1aug360_mnist-rot-12k_GTX1080
+# ./imagenet.sh aresnet 50 16 _aluinresbranch_lr0.1_wd1e-4_bs128_ _DDN 0,1,2,3
+./imagenet.sh senet 50 16 _addBN1d_in_SE_lr0.1_wd1e-4_bs128_ _imagenet_DNN 0,1,2,3

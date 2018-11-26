@@ -43,7 +43,7 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
-parser.add_argument('--print-freq', '-p', default=10, type=int,
+parser.add_argument('--print-freq', '-p', default=1, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
@@ -225,6 +225,13 @@ def main():
                                    download=False, transform=transform)
         val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                                  shuffle=False, num_workers=2)
+    elif (args.dataset == 'svhn'):
+        path_to_train_lmdb_dir = os.path.join(args.data, 'train.lmdb')
+        path_to_val_lmdb_dir = os.path.join(args.data, 'val.lmdb')
+        train_loader = torch.utils.data.DataLoader(SVHN(path_to_train_lmdb_dir),
+                                                   batch_size=args.batch_size, shuffle=True,
+                                                   num_workers=2, pin_memory=True)
+        val_loader = torch.utils.data.DataLoader(SVHN(path_to_val_lmdb_dir), batch_size=128, shuffle=False)
     else:
         print('No dataset named ', args.dataset)
         exit(0)

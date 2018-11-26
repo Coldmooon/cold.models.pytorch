@@ -7,8 +7,10 @@ class SELayer(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
                 nn.Linear(channel, channel // reduction),
+                nn.BatchNorm1d(channel // reduction),
                 nn.ReLU(inplace=True),
                 nn.Linear(channel // reduction, channel),
+                nn.BatchNorm1d(channel),
                 nn.Sigmoid()
         )
 

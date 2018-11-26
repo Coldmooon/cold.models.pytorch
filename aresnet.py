@@ -66,15 +66,16 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.alu1 = ALU(planes, r)
+        # self.alu1 = ALU(planes, r)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.alu2 = ALU(planes, r)
+        # self.alu2 = ALU(planes, r)
 
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.alu3 = ALU(planes * 4, r)
+        self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
 
@@ -83,21 +84,24 @@ class Bottleneck(nn.Module):
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = self.alu1(out)
+        # out = self.alu1(out)
+        out = self.relu(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
-        out = self.alu2(out)
+        # out = self.alu2(out)
+        out = self.relu(out)
 
         out = self.conv3(out)
         out = self.bn3(out)
         # out = self.se(out)
+        out = self.alu3(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
 
         out += residual
-        out = self.alu3(out)
+        out = self.relu(out)
 
         return out
 
@@ -109,7 +113,8 @@ class ResNetCIFAR(nn.Module):
         super(ResNetCIFAR, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
-        self.relu = nn.ReLU(inplace=True)
+        # self.relu = nn.ReLU(inplace=True)
+        self.alu = ALU(16, 4)
         self.layer1 = self._make_layer(block, 16, layers[0], r=4)
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2, r=8)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2, r=16)
@@ -145,7 +150,7 @@ class ResNetCIFAR(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        x = self.relu(x)
+        x = self.alu(x)
 
         x = self.layer1(x)
         x = self.layer2(x)
@@ -167,6 +172,7 @@ class ResNetImageNet(nn.Module):
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
+        # self.alu = ALU(64, r)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0], r=r)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, r=r)
@@ -180,6 +186,9 @@ class ResNetImageNet(nn.Module):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
             elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
@@ -203,6 +212,7 @@ class ResNetImageNet(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
+        # x = self.alu(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
