@@ -1,6 +1,5 @@
 from torch import nn
 # import visdom
-# import numpy as np
 import torch
 
 class SWISH(nn.Module):
