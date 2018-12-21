@@ -7,10 +7,10 @@ import torch.nn as nn
 
 # My implementation: 
 class LabelSmoothing(nn.Module):
-    def __init__(self, nClasses, eps):
+    def __init__(self, nClasses, eps=None):
         super(LabelSmoothing, self).__init__()
         self.nClasses = nClasses
-        self.eps = eps
+        self.eps = eps or 0
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, inputs, targets):
