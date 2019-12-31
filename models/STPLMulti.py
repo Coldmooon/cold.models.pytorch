@@ -1653,6 +1653,146 @@ class PLinST(nn.Module):
         return length_logits, digits_logits
 
 
+from st_module import STinSTMulti
+class Experim2(nn.Module):
+    def __init__(self, r =16):
+        super(Experim2, self).__init__()
+
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.bn= nn.BatchNorm2d(num_features=48)
+
+        self.pl1 = STPL(27, 48, r)
+        self.pl2 = STPL(27, 64, r)
+        self.pl3 = STPL(13, 128, r)
+        # self.pl4 = ResPL(160, r)
+        # self.pl5 = ResPL(192, r)
+        # self.pl6 = ResPL(192, r)
+        # self.pl7 = ResPL(192, r)
+        # self.pl8 = ResPL(192, r)
+        self.st1 = STinSTMulti(inplanes=48, inshape=54)
+        self.st1 = STinSTMulti(inplanes=64, inshape=27)
+        self.st1 = STinSTMulti(inplanes=128, inshape=27)
+        self.st1 = STinSTMulti(inplanes=160, inshape=13)
+
+        hidden1 = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=48, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=48),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.Dropout(0.2)
+        )
+        hidden2 = nn.Sequential(
+            nn.Conv2d(in_channels=48, out_channels=64, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=64),
+            nn.ReLU(),
+            # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
+            # nn.Dropout(0.5)
+        )
+        hidden3 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.Dropout(0.5)
+        )
+        hidden4 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=160, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=160),
+            # self.pl4,
+            nn.ReLU()
+            # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
+            # nn.Dropout(0.5)
+        )
+        hidden5 = nn.Sequential(
+            nn.Conv2d(in_channels=160, out_channels=192, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=192),
+            # self.pl5,
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.Dropout(0.5)
+        )
+        hidden6 = nn.Sequential(
+            nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=192),
+            # self.pl6,
+            nn.ReLU()
+            # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
+            # nn.Dropout(0.5)
+        )
+        hidden7 = nn.Sequential(
+            nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=192),
+            # self.pl7,
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.Dropout(0.5)
+        )
+        hidden8 = nn.Sequential(
+            nn.Conv2d(in_channels=192, out_channels=192, kernel_size=5, padding=2, bias=True),
+            # nn.BatchNorm2d(num_features=192),
+            # self.pl8,
+            nn.ReLU()
+            # nn.MaxPool2d(kernel_size=2, stride=1, padding=1),
+            # nn.Dropout(0.5)
+        )
+        hidden9 = nn.Sequential(
+            nn.AvgPool2d(3, stride=1)
+        )
+
+        self._features = nn.Sequential(
+            hidden1,
+            hidden2,
+            hidden3,
+            hidden4,
+            hidden5,
+            hidden6,
+            hidden7,
+            hidden8
+        )
+
+        self._classifier = nn.Sequential(
+            hidden9
+        )
+
+        self._digit_length = nn.Sequential(nn.Linear(192, 7))
+        self._digit1 = nn.Sequential(nn.Linear(192, 11))
+        self._digit2 = nn.Sequential(nn.Linear(192, 11))
+        self._digit3 = nn.Sequential(nn.Linear(192, 11))
+        self._digit4 = nn.Sequential(nn.Linear(192, 11))
+        self._digit5 = nn.Sequential(nn.Linear(192, 11))
+
+        # for m in self.modules():
+        #     if isinstance(m, nn.Conv2d):
+        #         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        #         m.weight.data.normal_(0, math.sqrt(2. / n))
+        #     if isinstance(m, nn.BatchNorm2d):
+        #         m.weight.data.fill_(1)
+        #         # m.bias.data.zero_()
+
+    def forward(self, x):
+        # x = self.st1(x)
+        x = self.hidden1(x)
+        x = self.pl1(x)
+
+        x = self.hidden2(x)
+        x = self.pl2(x)
+
+        x = self.hidden3(x)
+        x = self.pl3(x)
+
+        x = self.hidden4(x)
+        x = self._features(x)
+        x = self._classifier(x)
+        x = x.view(x.size(0), -1)
+
+        length_logits, digits_logits = self._digit_length(x), [self._digit1(x),
+                                                               self._digit2(x),
+                                                               self._digit3(x),
+                                                               self._digit4(x),
+                                                               self._digit5(x)]
+        return length_logits, digits_logits
+
 def stpl11(r=16):
     """Constructs a ResNet-101 model.
 

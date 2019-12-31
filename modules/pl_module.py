@@ -1,6 +1,9 @@
 from torch import nn
 import torch
 import torch.nn.functional as F
+import visdom
+import numpy as np
+
 class PLLayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(PLLayer, self).__init__()
@@ -138,7 +141,7 @@ class STPL(nn.Module):
         self.conv1x1 = nn.Conv2d(channel, channel, kernel_size=1, groups=channel)
         # self.bn = nn.BatchNorm2d(channel, affine=False)
         self.relu = nn.ReLU()
-
+        self.vis = visdom.Visdom(port=7777)
         # self.stavg = nn.AdaptiveAvgPool2d(1)
         self.stfc1 = nn.Linear(channel * shape * shape, 32)
         self.stfc2 = nn.Linear(32, 32)
@@ -170,6 +173,11 @@ class STPL(nn.Module):
         x = F.grid_sample(x, grid)
 
         x = x * torch.exp(s * lam * -1).view(1, -1, 1, 1)
+
+        self.vis.line(Y=s.data.cpu().numpy().reshape(1), X=np.array([1]), win="PL s", update="append")
+        self.vis.line(Y=lam.median().data.cpu().numpy().reshape(1), X=np.array([1]), win="PL lam", update="append")
+        self.vis.line(Y=torch.exp(s * lam * -1).median().data.cpu().numpy().reshape(1), X=np.array([1]), win="factor", update="append")
+
 
         x = self.conv1x1(x)
         # x = self.relu(x)
