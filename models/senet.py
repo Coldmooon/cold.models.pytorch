@@ -4,8 +4,8 @@ import torch.utils.model_zoo as model_zoo
 from se_module import SELayer
 
 
-__all__ = ['ResNet', 'resnet20', 'resnet32', 'senet50', 'resnet56',
-           'resnet110']
+__all__ = ['ResNet', 'senet20', 'senet32', 'senet50', 'senet56', 'senet110',
+           'senet110']
 
 
 model_urls = {
@@ -218,7 +218,7 @@ class ResNetImageNet(nn.Module):
         return x
 
 
-def resnet20(pretrained=False, **kwargs):
+def senet20(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
@@ -230,7 +230,7 @@ def resnet20(pretrained=False, **kwargs):
     return model
 
 
-def resnet32(pretrained=False, **kwargs):
+def senet32(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
 
     Args:
@@ -242,7 +242,7 @@ def resnet32(pretrained=False, **kwargs):
     return model
 
 
-def resnet44(pretrained=False, **kwargs):
+def senet44(pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
 
     Args:
@@ -254,7 +254,7 @@ def resnet44(pretrained=False, **kwargs):
     return model
 
 
-def resnet56(pretrained=False, **kwargs):
+def senet56(pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
 
     Args:
@@ -266,7 +266,7 @@ def resnet56(pretrained=False, **kwargs):
     return model
 
 
-def resnet110(pretrained=False, **kwargs):
+def senet110(pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
 
     Args:
@@ -279,7 +279,7 @@ def resnet110(pretrained=False, **kwargs):
 
 
 
-def resnet18(pretrained=False, **kwargs):
+def senet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
@@ -291,7 +291,7 @@ def resnet18(pretrained=False, **kwargs):
     return model
 
 
-def resnet34(pretrained=False, **kwargs):
+def senet34(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
 
     Args:
@@ -315,7 +315,7 @@ def senet50(pretrained=False, **kwargs):
     return model
 
 
-def resnet101(pretrained=False, **kwargs):
+def senet101(pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
 
     Args:
@@ -327,7 +327,7 @@ def resnet101(pretrained=False, **kwargs):
     return model
 
 
-def resnet152(pretrained=False, **kwargs):
+def senet152(pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
 
     Args:

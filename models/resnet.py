@@ -1,6 +1,7 @@
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
+from models.swish import SWISH
 
 
 __all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet44', 'resnet56',
@@ -30,6 +31,7 @@ class BasicBlock(nn.Module):
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
+        # self.swish = SWISH(channels=planes)
         self.conv2 = conv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
@@ -41,6 +43,7 @@ class BasicBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
+        # out = self.swish(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -49,6 +52,7 @@ class BasicBlock(nn.Module):
             residual = self.downsample(x)
 
         out += residual
+        # out = self.swish(out)
         out = self.relu(out)
 
         return out
@@ -95,16 +99,18 @@ class Bottleneck(nn.Module):
 
 class ResNetCIFAR(nn.Module):
 
-    def __init__(self, block, layers, num_classes=10):
+    def __init__(self, block, layers, dataset='cifar10', r=1):
         self.inplanes = 16
         super(ResNetCIFAR, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU(inplace=True)
+        # self.swish = SWISH(channels=16)
         self.layer1 = self._make_layer(block, 16, layers[0])
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
         self.avgpool = nn.AvgPool2d(8, stride=1)
+        num_classes = dataset == 'cifar10' and 10 or 100
         self.fc = nn.Linear(64 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -135,6 +141,7 @@ class ResNetCIFAR(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
+        # x = self.swish(x)
         x = self.relu(x)
 
         x = self.layer1(x)
@@ -149,7 +156,7 @@ class ResNetCIFAR(nn.Module):
 
 class ResNetImageNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=1000):
+    def __init__(self, block, layers, dataset='imagenet'):
         self.inplanes = 64
         super(ResNetImageNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
@@ -162,6 +169,7 @@ class ResNetImageNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1)
+        num_classes = 1000
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():

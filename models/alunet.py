@@ -5,8 +5,8 @@ from se_module import SELayer
 from alu import ALU
 # from scale import ScaleLayer
 
-__all__ = ['ResNetCIFAR', 'ResNetImageNet', 'aresnet20', 'aresnet32', 'aresnet44', 'aresnet56','aresnet110',
-           'aresnet34', 'aresnet50', 'aresnet101', 'aresnet152']
+__all__ = ['ResNetCIFAR', 'ResNetImageNet', 'alunet20', 'alunet32', 'alunet44', 'alunet56','alunet110',
+           'alunet34', 'alunet50', 'alunet101', 'alunet152']
 
 
 model_urls = {
@@ -129,6 +129,9 @@ class ResNetCIFAR(nn.Module):
                 if m.affine:
                     m.weight.data.fill_(1)
                     m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm1d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def _make_layer(self, block, planes, blocks, stride=1, r=16):
         downsample = None
@@ -228,7 +231,7 @@ class ResNetImageNet(nn.Module):
         return x
 
 
-def aresnet20(pretrained=False, **kwargs):
+def alunet20(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
@@ -240,7 +243,7 @@ def aresnet20(pretrained=False, **kwargs):
     return model
 
 
-def aresnet32(pretrained=False, **kwargs):
+def alunet32(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
 
     Args:
@@ -252,7 +255,7 @@ def aresnet32(pretrained=False, **kwargs):
     return model
 
 
-def aresnet44(pretrained=False, **kwargs):
+def alunet44(pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
 
     Args:
@@ -264,7 +267,7 @@ def aresnet44(pretrained=False, **kwargs):
     return model
 
 
-def aresnet56(pretrained=False, **kwargs):
+def alunet56(pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
 
     Args:
@@ -276,7 +279,7 @@ def aresnet56(pretrained=False, **kwargs):
     return model
 
 
-def aresnet110(pretrained=False, **kwargs):
+def alunet110(pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
 
     Args:
@@ -289,7 +292,7 @@ def aresnet110(pretrained=False, **kwargs):
 
 
 
-def aresnet18(pretrained=False, **kwargs):
+def alunet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
 
     Args:
@@ -301,7 +304,7 @@ def aresnet18(pretrained=False, **kwargs):
     return model
 
 
-def aresnet34(pretrained=False, **kwargs):
+def alunet34(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
 
     Args:
@@ -313,7 +316,7 @@ def aresnet34(pretrained=False, **kwargs):
     return model
 
 
-def aresnet50(pretrained=False, **kwargs):
+def alunet50(pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
 
     Args:
@@ -325,7 +328,7 @@ def aresnet50(pretrained=False, **kwargs):
     return model
 
 
-def aresnet101(pretrained=False, **kwargs):
+def alunet101(pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
 
     Args:
@@ -337,7 +340,7 @@ def aresnet101(pretrained=False, **kwargs):
     return model
 
 
-def aresnet152(pretrained=False, **kwargs):
+def alunet152(pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
 
     Args:
