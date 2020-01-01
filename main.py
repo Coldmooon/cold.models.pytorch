@@ -14,9 +14,8 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-# import resnet as models
 import PIL
-from rotmnist import RotMNIST
+# from rotmnist import RotMNIST
 import importlib
 
 # model_names = sorted(name for name in models.__dict__
@@ -76,7 +75,7 @@ def main():
 
 
     # import the module
-    models = importlib.import_module(args.arch)
+    models = importlib.import_module('models.' + args.arch)
     globals().update(models.__dict__)
 
     # Use specific GPU
@@ -95,10 +94,10 @@ def main():
     # create model
     if args.pretrained:
         print("=> using pre-trained model '{}'".format(args.arch))
-        model = models.__dict__[args.arch](pretrained=True, r=args.se_reduce)
+        model = models.__dict__[args.arch](pretrained=True, r=args.se_reduce, dataset=args.dataset)
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch](r=args.se_reduce)
+        model = models.__dict__[args.arch](r=args.se_reduce, dataset=args.dataset)
 
     if not args.distributed:
         if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
@@ -118,6 +117,9 @@ def main():
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
+
+    # from loss.label_smoothing import LabelSmoothing
+    # criterion = LabelSmoothing(10, 0.1).cuda()
 
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,
@@ -205,6 +207,24 @@ def main():
                                                   shuffle=True, num_workers=2)
 
         testset = datasets.CIFAR10(root='./data', train=False,
+                                               download=True, transform=transform)
+        val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                             shuffle=False, num_workers=2)
+    elif (args.dataset == 'cifar100'):
+        to_normalized_tensor = [transforms.ToTensor(),
+                                # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470,  0.2435,  0.2616))]
+        data_augmentation = [transforms.RandomCrop(32, padding=4),
+                             transforms.RandomHorizontalFlip()]
+
+        transform = transforms.Compose(data_augmentation + to_normalized_tensor)
+
+        trainset = datasets.CIFAR100(root='./data', train=True,
+                                                download=True, transform=transform)
+        train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                                  shuffle=True, num_workers=2)
+
+        testset = datasets.CIFAR100(root='./data', train=False,
                                                download=True, transform=transform)
         val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=2)
