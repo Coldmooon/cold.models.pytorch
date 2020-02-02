@@ -15,6 +15,7 @@ datadir=".${gpu}"
 dataset=$7
 directory="checkpoints/${model}${depth}${description}_${dataset}_${post}_${time}_in_progress"
 
+mkdir -p ${directory}
 cp $0 mission.sh main.py models/${model}.py ${directory}
 
 # -u: https://stackoverflow.com/questions/21662783/linux-tee-is-not-working-with-python

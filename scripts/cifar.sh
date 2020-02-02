@@ -15,6 +15,7 @@ datadir=".${gpu}"
 dataset=$7
 directory="checkpoints/${model}${depth}${description}_${dataset}_${post}_${time}_in_progress"
 
+mkdir -p ${directory}
 cp $0 mission.sh main.py models/${model}.py ${directory}
 
 echo "python -u main.py -a $model -d $depth -b 128 --lr 0.1 --wd 0.0005 --epochs 200 --se-reduce $se \
