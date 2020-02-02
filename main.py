@@ -145,7 +145,7 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         print("=> creating model '{}'".format(args.arch))
         # model = models.__dict__[args.arch](r=args.se_reduce, dataset=args.dataset)
-        model = models.__dict__[args.arch]()
+        model = models.__dict__[args.arch](r=args.se_reduce, dataset=args.dataset)
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -267,14 +267,19 @@ def main_worker(gpu, ngpus_per_node, args):
 
         transform = transforms.Compose(data_augmentation + to_normalized_tensor)
 
-        trainset = datasets.CIFAR10(root='./data', train=True,
+        train_dataset = datasets.CIFAR10(root=args.data, train=True,
                                                 download=True, transform=transform)
-        train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+        if args.distributed:
+            train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+        else:
+            train_sampler = None
+
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size,
                                                   shuffle=True, num_workers=args.workers)
 
-        testset = datasets.CIFAR10(root='./data', train=False,
+        test_dataset = datasets.CIFAR10(root=args.data, train=False,
                                                download=True, transform=transform)
-        val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+        val_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=args.workers)
     elif (args.dataset == 'cifar100'):
         to_normalized_tensor = [transforms.ToTensor(),
@@ -285,14 +290,19 @@ def main_worker(gpu, ngpus_per_node, args):
 
         transform = transforms.Compose(data_augmentation + to_normalized_tensor)
 
-        trainset = datasets.CIFAR100(root='./data', train=True,
+        train_dataset = datasets.CIFAR100(root=args.data, train=True,
                                                 download=True, transform=transform)
-        train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+        if args.distributed:
+            train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+        else:
+            train_sampler = None
+
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size,
                                                   shuffle=True, num_workers=args.workers)
 
-        testset = datasets.CIFAR100(root='./data', train=False,
+        test_dataset = datasets.CIFAR100(root=args.data, train=False,
                                                download=True, transform=transform)
-        val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+        val_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=args.workers)
     elif (args.dataset == 'mnist-rot-12k'):
         traindir = os.path.join(args.data, '')
@@ -362,7 +372,7 @@ def main_worker(gpu, ngpus_per_node, args):
 def train(train_loader, model, criterion, optimizer, epoch, args):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
+    losses = AverageMeter('Loss', ':.4f')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
     progress = ProgressMeter(
@@ -407,7 +417,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
 
 def validate(val_loader, model, criterion, args):
     batch_time = AverageMeter('Time', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
+    losses = AverageMeter('Loss', ':.4f')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
     progress = ProgressMeter(
