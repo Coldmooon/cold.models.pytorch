@@ -329,6 +329,7 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,
                    **kwargs)
 
@@ -341,6 +342,7 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnet34', BasicBlock, [3, 4, 6, 3], pretrained, progress,
                    **kwargs)
 
@@ -353,6 +355,7 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained, progress,
                    **kwargs)
 
@@ -365,6 +368,7 @@ def resnet101(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnet101', Bottleneck, [3, 4, 23, 3], pretrained, progress,
                    **kwargs)
 
@@ -377,6 +381,7 @@ def resnet152(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnet152', Bottleneck, [3, 8, 36, 3], pretrained, progress,
                    **kwargs)
 
@@ -391,6 +396,7 @@ def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
     """
     kwargs['groups'] = 32
     kwargs['width_per_group'] = 4
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnext50_32x4d', Bottleneck, [3, 4, 6, 3],
                    pretrained, progress, **kwargs)
 
@@ -405,6 +411,7 @@ def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
     """
     kwargs['groups'] = 32
     kwargs['width_per_group'] = 8
+    kwargs['dataset'] = 'imagenet'
     return _resnet('resnext101_32x8d', Bottleneck, [3, 4, 23, 3],
                    pretrained, progress, **kwargs)
 
@@ -423,6 +430,7 @@ def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     kwargs['width_per_group'] = 64 * 2
+    kwargs['dataset'] = 'imagenet'
     return _resnet('wide_resnet50_2', Bottleneck, [3, 4, 6, 3],
                    pretrained, progress, **kwargs)
 
@@ -441,6 +449,7 @@ def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     kwargs['width_per_group'] = 64 * 2
+    kwargs['dataset'] = 'imagenet'
     return _resnet('wide_resnet101_2', Bottleneck, [3, 4, 23, 3],
                    pretrained, progress, **kwargs)
 
@@ -450,6 +459,7 @@ def resnet20(pretrained=False, progress=True, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
+    kwargs['dataset'] = 'dataset' in kwargs and kwargs['dataset'] or 'cifar100'
     return _resnet('resnet20', BasicBlock, [3, 3, 3, 3],
                    pretrained, progress, **kwargs)
 
@@ -461,6 +471,7 @@ def resnet32(pretrained=False, progress=True, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
+    kwargs['dataset'] = 'dataset' in kwargs and kwargs['dataset'] or 'cifar100'
     return _resnet('resnet32', BasicBlock, [5, 5, 5, 5],
                    pretrained, progress, **kwargs)
 
@@ -471,6 +482,7 @@ def resnet44(pretrained=False, progress=True, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
+    kwargs['dataset'] = 'dataset' in kwargs and kwargs['dataset'] or 'cifar100'
     return _resnet('resnet44', BasicBlock, [7, 7, 7, 7],
                    pretrained, progress, **kwargs)
 
@@ -481,6 +493,7 @@ def resnet56(pretrained=False, progress=True, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
+    kwargs['dataset'] = 'dataset' in kwargs and kwargs['dataset'] or 'cifar100'
     return _resnet('resnet56', BasicBlock, [9, 9, 9, 9],
                    pretrained, progress, **kwargs)
 
@@ -491,5 +504,6 @@ def resnet110(pretrained=False, progress=True, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
+    kwargs['dataset'] = 'dataset' in kwargs and kwargs['dataset'] or 'cifar100'
     return _resnet('resnet110', BasicBlock, [18, 18, 18, 18],
                    pretrained, progress, **kwargs)
