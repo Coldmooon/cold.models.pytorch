@@ -107,6 +107,8 @@ def main():
 
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
 
+    show_args(args)
+
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
         # needs to be adjusted accordingly
@@ -545,6 +547,12 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
+
+def show_args(args):
+    """Show trainging hyper-parameters and configurations"""
+    print("---------------------------------")
+    print(args)
+    print("---------------------------------")
 
 
 if __name__ == '__main__':
